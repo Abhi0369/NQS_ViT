@@ -28,23 +28,17 @@ class ScaleNorm(nn.Module):
         scaled_x = x / jnp.maximum(norm, self.eps) * g
         return scaled_x
 
+
 class RelativePositionEmbedding(nn.Module):
     """Embedding for encoding relative positions."""
     hidden_size: int
     max_relative_position: int
     embedding_init: nn.initializers.Initializer = nn.initializers.normal(dtype=jnp.complex64)
-    # embedding_init: nn.initializers.Initializer = nn.initializers.variance_scaling(1.0, 'fan_avg', 'uniform', dtype=jnp.complex64)
 
-
-    def setup(self):
-        """Initializes the embedding table for relative positions."""
-
-        self.relative_pos_embed = self.param('relative_positions_embeddings',
-                                             self.embedding_init,
-                                             (2 * self.max_relative_position + 1, self.hidden_size))
-
+    @nn.compact
     def __call__(self, length):
-        """Generates a tensor of size (length x length) filled with relative positional encodings.
+        """
+        Generates a tensor of size (length x length) filled with relative positional encodings.
 
         Args:
             length: The length of the sequence (number of patches).
@@ -52,12 +46,20 @@ class RelativePositionEmbedding(nn.Module):
         Returns:
             A tensor with shape [1, length, hidden_size] containing relative positional embeddings.
         """
+        # Define the embedding table for relative positions within __call__ using nn.Embed
+        relative_pos_embed = self.param('relative_positions_embeddings',
+                                        self.embedding_init,
+                                        (2 * self.max_relative_position + 1, self.hidden_size))
+
+        # Compute relative positions
         range_vec = jnp.arange(length)
         range_mat = range_vec[:, None] - range_vec[None, :]
         range_mat_clipped = jnp.clip(range_mat, -self.max_relative_position, self.max_relative_position)
         final_mat = range_mat_clipped + self.max_relative_position
-        embeddings = self.relative_pos_embed[final_mat]
-        embeddings = embeddings.mean(0,keepdims=True)
+
+        # Use embeddings; since it's defined in __call__, we use it directly
+        embeddings = relative_pos_embed[final_mat]
+        embeddings = embeddings.mean(0, keepdims=True)
         return embeddings
 
 class PatchEmbeddings(nn.Module):
