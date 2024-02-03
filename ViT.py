@@ -214,7 +214,7 @@ class VisionTransformer(nn.Module):
             length = x.shape[1]
             # embedding_init = jax.nn.initializers.variance_scaling(1.0, 'fan_avg', 'uniform', dtype=jnp.float32)
             embedding_init= nn.initializers.normal(dtype=jnp.complex64)
-            pos_embedding = self.param('pos_embedding', embedding_init, (length, self.hidden_size))
+            pos_embedding = self.param('random_pos_embedding', embedding_init, (1,length, self.hidden_size))
             x = x + pos_embedding
    
 
@@ -228,6 +228,8 @@ class VisionTransformer(nn.Module):
             x = x[:, 0, :]  # Use the class token
         else:
             x = jnp.mean(x, axis=(1))  # Average pooling
+            # x = jnp.mean(x, axis=(1,-1))
+
 
         x = nn.Dense(features=self.num_classes, param_dtype=jnp.complex64)(x)
 

@@ -28,7 +28,7 @@ def main(epochs, batch_size, learning_rate, n, n_sweeps, warm_up, SR, Jz):
     key = random.PRNGKey(369)  # Initialize the random key for JAX
 
     # Initialize the VisionTransformer model with given parameters
-    nqs = VisionTransformer(patch_size=2, hidden_size=16, lattice_size=n, num_heads=8, num_layers=1, num_classes=1, 
+    nqs = VisionTransformer(patch_size=2, hidden_size=16, lattice_size=n, num_heads=16, num_layers=1, num_classes=1, 
                             num_channels=1,use_cls_token=False,use_relative_pos_embedding=False,use_scale_norm=False
                             )
     
@@ -74,8 +74,8 @@ def main(epochs, batch_size, learning_rate, n, n_sweeps, warm_up, SR, Jz):
 
             params = optax.apply_updates(params, updates)
             # Log energy
-            Energies.append(jnp.real(elocs))
-            print(f"Iteration {epoch}, Loss:, Energy: {jnp.real(eloc)}, Variance: {var}")
+            Energies.append(jnp.real(eloc))
+            print(f"Iteration {epoch}, Loss: {loss}, Energy: {jnp.real(eloc)}, Variance: {var}")
 
             
 
